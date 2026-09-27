@@ -97,10 +97,12 @@ lazy_static::lazy_static! {
     pub static ref APP_HOME_DIR: RwLock<String> = Default::default();
 }
 
-pub const LINK_DOCS_HOME: &str = "https://rustdesk.com/docs/en/";
-pub const LINK_DOCS_X11_REQUIRED: &str = "https://rustdesk.com/docs/en/manual/linux/#x11-required";
-pub const LINK_HEADLESS_LINUX_SUPPORT: &str =
-    "https://github.com/rustdesk/rustdesk/wiki/Headless-Linux-Support";
+// IOC-RustDesk: upstream documentation links into rustdesk.com. Empty so no
+// error dialog can ever surface a vendor URL on an air-gapped deployment.
+pub const LINK_DOCS_HOME: &str = "";
+pub const LINK_DOCS_X11_REQUIRED: &str = "";
+// IOC-RustDesk: was a github.com wiki link; empty for the same reason.
+pub const LINK_HEADLESS_LINUX_SUPPORT: &str = "";
 
 lazy_static::lazy_static! {
     pub static ref HELPER_URL: HashMap<&'static str, &'static str> = HashMap::from([
