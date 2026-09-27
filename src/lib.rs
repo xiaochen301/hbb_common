@@ -508,7 +508,10 @@ pub const VER_TYPE_RUSTDESK_CLIENT: &str = "rustdesk-client";
 pub const VER_TYPE_RUSTDESK_SERVER: &str = "rustdesk-server";
 
 pub fn version_check_request(typ: String) -> (VersionCheckRequest, String) {
-    const URL: &str = "https://api.rustdesk.com/version/latest";
+    // IOC-RustDesk: software update checking is permanently disabled, so the
+    // official version endpoint is never contacted. An empty URL makes every
+    // caller fail fast instead of phoning home.
+    const URL: &str = "";
 
     use sysinfo::System;
     let system = System::new();
