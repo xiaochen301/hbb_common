@@ -7,7 +7,7 @@ use crate::{
     websocket::{self, check_ws, is_ws_endpoint},
     ResultType, Stream,
 };
-use anyhow::Context;
+use anyhow::{bail, Context};
 use std::{net::SocketAddr, sync::Arc};
 use tokio::net::{ToSocketAddrs, UdpSocket};
 use tokio_socks::{IntoTargetAddr, TargetAddr};
@@ -186,20 +186,20 @@ pub fn is_ipv4(target: &TargetAddr<'_>) -> bool {
 }
 
 #[inline]
-pub async fn query_nip_io(addr: &SocketAddr) -> ResultType<SocketAddr> {
-    tokio::net::lookup_host(format!("{}.nip.io:{}", addr.ip(), addr.port()))
-        .await?
-        .find(|x| x.is_ipv6())
-        .context("Failed to get ipv6 from nip.io")
+pub async fn query_nip_io(_addr: &SocketAddr) -> ResultType<SocketAddr> {
+    // IOC-RustDesk: nip.io is a public DNS service and must never be contacted.
+    // The only caller (connect_tcp with a v6-local / v4-remote pair) now falls
+    // through to a direct connection instead of resolving through nip.io.
+    bail!("nip.io DNS lookups are disabled in this build")
 }
 
 #[inline]
 pub fn ipv4_to_ipv6(addr: String, ipv4: bool) -> String {
-    if !ipv4 && crate::is_ipv4_str(&addr) {
-        if let Some(ip) = addr.split(':').next() {
-            return addr.replace(ip, &format!("{ip}.nip.io"));
-        }
-    }
+    // IOC-RustDesk: nip.io is a public DNS service. Rewriting a relay address to
+    // "<ip>.nip.io" makes every relayed connection perform an external DNS
+    // lookup, which is unacceptable on an air-gapped deployment. Returning the
+    // address unchanged forces plain IPv4 relay against the self-hosted hbbr.
+    let _ = ipv4;
     addr
 }
 
