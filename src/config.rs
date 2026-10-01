@@ -2829,6 +2829,19 @@ pub fn is_disable_installation() -> bool {
 // flutter: flutter/lib/common.dart -> option2bool()
 // sciter: Does not have the function, but it should be kept the same.
 pub fn option2bool(option: &str, value: &str) -> bool {
+    // IOC-RustDesk: government-network defaults, applied only while the
+    // option has never been set (empty value). A user-set value always wins.
+    if value.is_empty() {
+        if option == keys::OPTION_ENABLE_LAN_DISCOVERY {
+            return false; // deny LAN discovery by default
+        }
+        if option == keys::OPTION_DIRECT_SERVER {
+            return true; // allow direct IP access by default
+        }
+        if option == keys::OPTION_ENABLE_CHECK_UPDATE {
+            return false; // never check for a software update
+        }
+    }
     if option.starts_with("enable-") {
         value != "N"
     } else if option.starts_with("allow-")
@@ -3355,6 +3368,23 @@ mod tests {
         let cfg: PeerConfig = Default::default();
         let res = toml::to_string_pretty(&cfg);
         assert!(res.is_ok());
+    }
+
+    #[test]
+    fn test_ioc_option2bool_defaults() {
+        // IOC-RustDesk: unset options must use the government-network defaults.
+        assert!(!option2bool(keys::OPTION_ENABLE_LAN_DISCOVERY, ""));
+        assert!(option2bool(keys::OPTION_DIRECT_SERVER, ""));
+        assert!(!option2bool(keys::OPTION_ENABLE_CHECK_UPDATE, ""));
+        // Explicit values must keep the upstream behaviour.
+        for opt in [
+            keys::OPTION_ENABLE_LAN_DISCOVERY,
+            keys::OPTION_DIRECT_SERVER,
+            keys::OPTION_ENABLE_CHECK_UPDATE,
+        ] {
+            assert!(option2bool(opt, "Y"));
+            assert!(!option2bool(opt, "N"));
+        }
     }
 
     #[test]
