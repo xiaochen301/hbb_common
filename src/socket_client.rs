@@ -308,28 +308,18 @@ mod tests {
     #[tokio::main(flavor = "current_thread")]
     async fn test_nat64_async() {
         assert_eq!(ipv4_to_ipv6("1.1.1.1".to_owned(), true), "1.1.1.1");
-        assert_eq!(ipv4_to_ipv6("1.1.1.1".to_owned(), false), "1.1.1.1.nip.io");
+        // IOC-RustDesk: nip.io rewriting is disabled, so the address comes back unchanged
+        // in both modes; the relay stays on plain IPv4.
+        assert_eq!(ipv4_to_ipv6("1.1.1.1".to_owned(), false), "1.1.1.1");
         assert_eq!(
             ipv4_to_ipv6("1.1.1.1:8080".to_owned(), false),
-            "1.1.1.1.nip.io:8080"
+            "1.1.1.1:8080"
         );
         assert_eq!(
             ipv4_to_ipv6("rustdesk.com".to_owned(), false),
             "rustdesk.com"
         );
-        if ("rustdesk.com:80")
-            .to_socket_addrs()
-            .unwrap()
-            .next()
-            .unwrap()
-            .is_ipv6()
-        {
-            assert!(query_nip_io(&"1.1.1.1:80".parse().unwrap())
-                .await
-                .unwrap()
-                .is_ipv6());
-            return;
-        }
+        // IOC-RustDesk: and the lookup itself always fails.
         assert!(query_nip_io(&"1.1.1.1:80".parse().unwrap()).await.is_err());
     }
 
